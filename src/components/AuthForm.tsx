@@ -1,6 +1,11 @@
+import { Eye, EyeOff } from 'lucide-react'
+import type { LucideIcon } from 'lucide-react'
+import { useRef, useState } from 'react'
+
 type AuthField = {
   id: string
-  label: string
+  placeholder: string
+  icon: LucideIcon
   type?: 'text' | 'password'
   autoComplete?: string
 }
@@ -13,6 +18,56 @@ type AuthFormProps = {
   footerText: string
   footerActionText: string
   onFooterAction: () => void
+}
+
+function InputField({
+  id,
+  icon: Icon,
+  placeholder,
+  type = 'text',
+  autoComplete,
+}: AuthField) {
+  const inputRef = useRef<HTMLInputElement>(null)
+  const [isPasswordVisible, setIsPasswordVisible] = useState(false)
+  const isPassword = type === 'password'
+  const inputType = isPassword && isPasswordVisible ? 'text' : type
+  const ToggleIcon = isPasswordVisible ? EyeOff : Eye
+
+  const handleTogglePassword = () => {
+    setIsPasswordVisible((current) => !current)
+    requestAnimationFrame(() => inputRef.current?.focus())
+  }
+
+  return (
+    <label className="flex h-[67px] w-full items-center gap-3 rounded-lg border border-[#D9D9D9] px-5 transition hover:border-[#BDBDBD] focus-within:border-[#67CDFF] focus-within:ring-2 focus-within:ring-[#67CDFF]/20">
+      <Icon
+        aria-hidden="true"
+        className="h-5 w-5 shrink-0 text-[#888]"
+        strokeWidth={1.8}
+      />
+      <span className="sr-only">{placeholder}</span>
+      <input
+        ref={inputRef}
+        id={id}
+        name={id}
+        type={inputType}
+        autoComplete={autoComplete}
+        placeholder={placeholder}
+        className="h-full min-w-0 flex-1 bg-transparent font-[Pretendard] text-base text-[#444] outline-none placeholder:text-[#888] placeholder:font-light"
+      />
+      {isPassword ? (
+        <button
+          type="button"
+          aria-label={isPasswordVisible ? '비밀번호 숨기기' : '비밀번호 보기'}
+          aria-pressed={isPasswordVisible}
+          onClick={handleTogglePassword}
+          className="-mr-2 flex h-10 w-10 shrink-0 cursor-pointer items-center justify-center rounded-md text-[#888] transition hover:bg-[#F5F5F5] hover:text-[#444] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#67CDFF]"
+        >
+          <ToggleIcon aria-hidden="true" className="h-5 w-5" strokeWidth={1.8} />
+        </button>
+      ) : null}
+    </label>
+  )
 }
 
 function AuthForm({
@@ -38,18 +93,14 @@ function AuthForm({
 
         <div className="flex w-full flex-col gap-5">
           {fields.map((field) => (
-            <label key={field.id} className="flex w-full flex-col gap-2">
-              <span className="font-[Pretendard] text-[15px] font-light leading-normal text-[#888]">
-                {field.label}
-              </span>
-              <input
-                id={field.id}
-                name={field.id}
-                type={field.type ?? 'text'}
-                autoComplete={field.autoComplete}
-                className="h-[67px] w-full rounded-lg border border-[#D9D9D9] px-5 font-[Pretendard] text-base text-[#444] outline-none transition focus:border-[#67CDFF] focus:ring-2 focus:ring-[#67CDFF]/20"
-              />
-            </label>
+            <InputField
+              key={field.id}
+              id={field.id}
+              icon={field.icon}
+              placeholder={field.placeholder}
+              type={field.type}
+              autoComplete={field.autoComplete}
+            />
           ))}
         </div>
 

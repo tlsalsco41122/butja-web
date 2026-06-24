@@ -1,3 +1,4 @@
+import { Lock, User } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
 import AuthForm from '../components/AuthForm'
 
@@ -9,10 +10,16 @@ function LoginPage() {
       title="로그인"
       description="붙자에 로그인하고 취업 준비를 이어가세요."
       fields={[
-        { id: 'username', label: '아이디', autoComplete: 'username' },
+        {
+          id: 'username',
+          placeholder: '아이디를 입력하세요',
+          icon: User,
+          autoComplete: 'username',
+        },
         {
           id: 'password',
-          label: '비밀번호',
+          placeholder: '비밀번호를 입력하세요',
+          icon: Lock,
           type: 'password',
           autoComplete: 'current-password',
         },
