@@ -1,11 +1,11 @@
 import axios from 'axios'
 
 const authApi = axios.create({
-  baseURL: 'http://15.164.203.58:8080',
+  baseURL: "https://butja.p-e.kr",
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
-})
+});
 
 type ApiResponse<T> = {
   success: boolean

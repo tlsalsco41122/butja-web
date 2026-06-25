@@ -2,12 +2,12 @@ import axios from 'axios'
 import type { AxiosRequestConfig } from 'axios'
 import type { ApiResponse } from './types'
 
-export const BASE_URL = 'http://15.164.203.58:8080'
+export const BASE_URL = "https://butja.p-e.kr"
 
 const apiClient = axios.create({
   baseURL: BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 })
 
