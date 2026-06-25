@@ -8,8 +8,10 @@ type StageDetailModalProps = {
   stage: DashboardStage
   isAcceptedStage: boolean
   isCompleting: boolean
+  isFailing: boolean
   errorMessage: string
   onComplete: () => void
+  onFail: () => void
   onClose: () => void
 }
 
@@ -37,8 +39,10 @@ function StageDetailModal({
   stage,
   isAcceptedStage,
   isCompleting,
+  isFailing,
   errorMessage,
   onComplete,
+  onFail,
   onClose,
 }: StageDetailModalProps) {
   useEffect(() => {
@@ -89,12 +93,22 @@ function StageDetailModal({
             {errorMessage}
           </p>
         ) : null}
-        <div className="mt-5 flex justify-end">
+        <div className="mt-5 flex justify-end gap-2">
+          {stage.status === 'IN_PROGRESS' && (
+            <button
+              type="button"
+              onClick={onFail}
+              disabled={isFailing || isCompleting}
+              className="rounded-lg bg-[#EB5757] px-5 py-2 font-[Pretendard] text-sm font-semibold text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#EB5757] disabled:cursor-not-allowed disabled:bg-[#C7C7CC] disabled:hover:brightness-100"
+            >
+              {isFailing ? '처리 중...' : '불합격'}
+            </button>
+          )}
           <button
             type="button"
             onClick={onComplete}
             disabled={
-              isCompleting || !stage.stageId || stage.status === 'COMPLETED'
+              isCompleting || isFailing || !stage.stageId || stage.status === 'COMPLETED' || stage.status === 'FAILED'
             }
             className="rounded-lg bg-[#67CDFF] px-5 py-2 font-[Pretendard] text-sm font-semibold text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2CAEE8] disabled:cursor-not-allowed disabled:bg-[#C7C7CC] disabled:hover:brightness-100"
           >

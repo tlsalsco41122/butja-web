@@ -1,4 +1,5 @@
 import SuccessModal from '../components/main/SuccessModal'
+import FailedModal from '../components/main/FailedModal'
 import { Menu } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -8,7 +9,7 @@ import {
   getApplications,
 } from '../api/applications'
 import { getApiErrorMessage } from '../api/client'
-import { completeStage } from '../api/stages'
+import { completeStage, failStage } from '../api/stages'
 import type { JobApplicationDetail } from '../api/types'
 import { getMe } from '../api/user'
 import backgroundImage from '../assets/background.png'
@@ -60,7 +61,12 @@ function toCompanyProgress(application: JobApplicationDetail): CompanyProgress {
             status: null,
           },
         ]
+  const failedStage = application.stages.find(
+    (stage) => stage.status === 'FAILED',
+  )
+
   const currentStage =
+    failedStage ??
     application.currentStage ??
     application.stages.find((stage) => stage.status === 'IN_PROGRESS') ??
     application.stages.at(-1)
@@ -92,12 +98,15 @@ function MainPage() {
   const [isDeleting, setIsDeleting] = useState(false)
   const [selectedStage, setSelectedStage] = useState<DashboardStage | null>(null)
   const [isCompletingStage, setIsCompletingStage] = useState(false)
+  const [isFailingStage, setIsFailingStage] = useState(false)
   const [stageActionError, setStageActionError] = useState('')
   const [companyMessages, setCompanyMessages] = useState(() =>
     createInitialCheerMessages([]),
   )
   const [showSuccessModal, setShowSuccessModal] = useState(false)
   const [successCompanyName, setSuccessCompanyName] = useState('')
+  const [showFailedModal, setShowFailedModal] = useState(false)
+  const [failedCompanyName, setFailedCompanyName] = useState('')
 
   const loadDashboard = async () => {
     try {
@@ -180,6 +189,37 @@ function MainPage() {
     }
   }
 
+  const handleFailStage = async () => {
+    if (!selectedStage?.stageId) {
+      return
+    }
+
+    setIsFailingStage(true)
+    setStageActionError('')
+
+    try {
+      const selectedCompany = companies.find(
+        (company) => company.applicationId === selectedStage.applicationId,
+      )
+
+      await failStage(selectedStage.applicationId, selectedStage.stageId)
+
+      if (selectedCompany) {
+        setFailedCompanyName(selectedCompany.name)
+        setShowFailedModal(true)
+      }
+
+      await loadDashboard()
+      setSelectedStage(null)
+    } catch (error) {
+      setStageActionError(
+        getApiErrorMessage(error, '불합격 처리에 실패했어요.'),
+      )
+    } finally {
+      setIsFailingStage(false)
+    }
+  }
+
   const handleDeleteCompany = async () => {
     if (!companyToDelete) {
       return
@@ -220,6 +260,12 @@ function MainPage() {
           onClose={() => setShowSuccessModal(false)}
         />
       )}
+      {showFailedModal && (
+        <FailedModal
+          companyName={failedCompanyName}
+          onClose={() => setShowFailedModal(false)}
+        />
+      )}
       {selectedStage ? (
         <StageDetailModal
           stage={selectedStage}
@@ -234,8 +280,10 @@ function MainPage() {
               ?.stages.at(-1)?.id
           }
           isCompleting={isCompletingStage}
+          isFailing={isFailingStage}
           errorMessage={stageActionError}
           onComplete={handleCompleteStage}
+          onFail={handleFailStage}
           onClose={() => setSelectedStage(null)}
         />
       ) : null}

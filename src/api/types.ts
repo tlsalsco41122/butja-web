@@ -6,7 +6,7 @@ export type ApiResponse<T> = {
   message: string
 }
 
-export type StageStatus = 'COMPLETED' | 'IN_PROGRESS' | 'PENDING'
+export type StageStatus = "PENDING" | "IN_PROGRESS" | "COMPLETED" | "FAILED";
 
 export type UserInfo = {
   id: number

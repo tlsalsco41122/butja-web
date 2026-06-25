@@ -22,17 +22,33 @@ function CompanyProgressRow({
 }: CompanyProgressRowProps) {
   const acceptedStage = company.stages.at(-1)
   const isCompanyAccepted = company.currentStageId === acceptedStage?.id
+  const failedStage = company.stages.find((stage) => stage.status === 'FAILED')
+  const isFailed = !!failedStage
   const buildingImage = getCompanyBuildingImage(company.id)
 
   return (
-    <section className="rounded-2xl border border-white/60 bg-white/45 px-5 py-5 shadow-[0_18px_48px_rgba(84,114,58,0.16)] backdrop-blur-md">
+    <section
+      className={[
+        'rounded-2xl border border-white/60 bg-white/45 px-5 py-5 shadow-[0_18px_48px_rgba(84,114,58,0.16)] backdrop-blur-md',
+        isFailed ? 'opacity-70 grayscale' : '',
+      ].join(' ')}
+    >
       <div className="mb-5 flex items-center justify-between gap-4">
         <div>
           <h2 className="font-[Pretendard] text-2xl font-bold leading-normal text-[#444]">
             {company.name}
           </h2>
-          <p className="font-[Pretendard] text-sm font-medium text-[#69744A]">
-            {company.jobRole} · {isCompanyAccepted ? '최종 합격 완료' : '전형 진행 중'}
+          <p
+            className={`font-[Pretendard] text-sm font-medium ${
+              isFailed ? 'text-[#EB5757]' : 'text-[#69744A]'
+            }`}
+          >
+            {company.jobRole} ·{' '}
+            {isFailed
+              ? '불합격'
+              : isCompanyAccepted
+                ? '최종 합격 완료'
+                : '전형 진행 중'}
           </p>
         </div>
         <div className="flex items-center gap-2">
