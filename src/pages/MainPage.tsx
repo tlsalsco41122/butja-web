@@ -1,3 +1,4 @@
+import SuccessModal from '../components/main/SuccessModal'
 import { Menu } from 'lucide-react'
 import { useEffect, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
@@ -95,6 +96,8 @@ function MainPage() {
   const [companyMessages, setCompanyMessages] = useState(() =>
     createInitialCheerMessages([]),
   )
+  const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [successCompanyName, setSuccessCompanyName] = useState('')
 
   const loadDashboard = async () => {
     try {
@@ -147,11 +150,25 @@ function MainPage() {
     setStageActionError('')
 
     try {
+      const selectedCompany = companies.find(
+        (company) =>
+          company.applicationId === selectedStage.applicationId,
+      )
+
+      const isFinalStage =
+        selectedCompany?.stages.at(-1)?.id === selectedStage.id
+
       await completeStage(
         selectedStage.applicationId,
         selectedStage.stageId,
         true,
       )
+
+      if (isFinalStage && selectedCompany) {
+        setSuccessCompanyName(selectedCompany.name)
+        setShowSuccessModal(true)
+      }
+
       await loadDashboard()
       setSelectedStage(null)
     } catch (error) {
@@ -197,9 +214,25 @@ function MainPage() {
         nickname={nickname}
         onClose={() => setIsMenuOpen(false)}
       />
+      {showSuccessModal && (
+        <SuccessModal
+          companyName={successCompanyName}
+          onClose={() => setShowSuccessModal(false)}
+        />
+      )}
       {selectedStage ? (
         <StageDetailModal
           stage={selectedStage}
+          isAcceptedStage={
+            companies
+              .flatMap((company) => company.stages)
+              .find((stage) => stage.id === selectedStage.id)?.id ===
+            companies
+              .find((company) =>
+                company.stages.some((stage) => stage.id === selectedStage.id),
+              )
+              ?.stages.at(-1)?.id
+          }
           isCompleting={isCompletingStage}
           errorMessage={stageActionError}
           onComplete={handleCompleteStage}

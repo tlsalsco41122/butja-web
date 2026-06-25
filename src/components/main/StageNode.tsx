@@ -32,7 +32,7 @@ function StageNode({
           src={buildingImage}
           alt=""
           aria-hidden="true"
-          className="absolute -top-[118px] left-1/2 z-10 h-[118px] max-w-[150px] -translate-x-1/2 object-contain drop-shadow-[0_10px_16px_rgba(68,68,68,0.2)]"
+          className="absolute -top-[118px] right-0 z-10 h-[118px] max-w-[150px] object-contain drop-shadow-[0_10px_16px_rgba(68,68,68,0.2)]"
         />
       ) : null}
 

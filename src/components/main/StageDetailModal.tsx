@@ -6,26 +6,36 @@ import { formatDateLabel } from '../../utils/date'
 
 type StageDetailModalProps = {
   stage: DashboardStage
+  isAcceptedStage: boolean
   isCompleting: boolean
   errorMessage: string
   onComplete: () => void
   onClose: () => void
 }
 
-function getCompleteButtonText(stage: DashboardStage, isCompleting: boolean) {
+function getCompleteButtonText(
+  stage: DashboardStage,
+  isCompleting: boolean,
+  isAcceptedStage: boolean,
+) {
   if (!stage.stageId) {
     return '완료 처리 불가'
   }
 
   if (stage.status === 'COMPLETED') {
-    return '완료된 전형'
+    return isAcceptedStage ? '합격 완료' : '완료된 전형'
   }
 
-  return isCompleting ? '처리 중...' : '완료하고 다음 단계로'
+  if (isCompleting) {
+    return '처리 중...'
+  }
+
+  return isAcceptedStage ? '최종 합격' : '완료하고 다음 단계로'
 }
 
 function StageDetailModal({
   stage,
+  isAcceptedStage,
   isCompleting,
   errorMessage,
   onComplete,
@@ -88,7 +98,11 @@ function StageDetailModal({
             }
             className="rounded-lg bg-[#67CDFF] px-5 py-2 font-[Pretendard] text-sm font-semibold text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2CAEE8] disabled:cursor-not-allowed disabled:bg-[#C7C7CC] disabled:hover:brightness-100"
           >
-            {getCompleteButtonText(stage, isCompleting)}
+            {getCompleteButtonText(
+              stage,
+              isCompleting,
+              isAcceptedStage,
+            )}
           </button>
         </div>
       </article>
