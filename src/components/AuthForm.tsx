@@ -15,8 +15,13 @@ type AuthFormProps = {
   description: string
   fields: AuthField[]
   submitText: string
+  submittingText?: string
+  isSubmitting?: boolean
+  errorMessage?: string
+  successMessage?: string
   footerText: string
   footerActionText: string
+  onSubmit: (values: Record<string, string>) => void | Promise<void>
   onFooterAction: () => void
 }
 
@@ -53,6 +58,7 @@ function InputField({
         type={inputType}
         autoComplete={autoComplete}
         placeholder={placeholder}
+        required
         className="h-full min-w-0 flex-1 bg-transparent font-[Pretendard] text-base text-[#444] outline-none placeholder:text-[#888] placeholder:font-light"
       />
       {isPassword ? (
@@ -75,13 +81,33 @@ function AuthForm({
   description,
   fields,
   submitText,
+  submittingText,
+  isSubmitting = false,
+  errorMessage,
+  successMessage,
   footerText,
   footerActionText,
+  onSubmit,
   onFooterAction,
 }: AuthFormProps) {
+  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+    event.preventDefault()
+
+    const formData = new FormData(event.currentTarget)
+    const values = fields.reduce<Record<string, string>>((result, field) => {
+      result[field.id] = String(formData.get(field.id) ?? '').trim()
+      return result
+    }, {})
+
+    void onSubmit(values)
+  }
+
   return (
     <main className="flex min-h-dvh items-center justify-center bg-white px-5 py-10">
-      <form className="flex w-full max-w-[526px] shrink-0 flex-col items-center gap-10">
+      <form
+        onSubmit={handleSubmit}
+        className="flex w-full max-w-[526px] shrink-0 flex-col items-center gap-10"
+      >
         <header className="flex flex-col items-center gap-4 text-center">
           <h1 className="font-[Pretendard] text-[clamp(38px,8vw,48px)] font-semibold leading-normal text-[#444]">
             {title}
@@ -106,11 +132,22 @@ function AuthForm({
 
         <div className="flex w-full flex-col items-center gap-5">
           <button
-            type="button"
-            className="flex h-[66px] w-full items-center justify-center rounded-lg bg-[#67CDFF] font-[Pretendard] text-base font-semibold text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2caee8]"
+            type="submit"
+            disabled={isSubmitting}
+            className="flex h-[66px] w-full items-center justify-center rounded-lg bg-[#67CDFF] font-[Pretendard] text-base font-semibold text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2caee8] disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:brightness-100"
           >
-            {submitText}
+            {isSubmitting ? (submittingText ?? submitText) : submitText}
           </button>
+          {errorMessage ? (
+            <p className="text-center font-[Pretendard] text-sm font-medium text-[#FF5A5A]">
+              {errorMessage}
+            </p>
+          ) : null}
+          {successMessage ? (
+            <p className="text-center font-[Pretendard] text-sm font-medium text-[#4CAF50]">
+              {successMessage}
+            </p>
+          ) : null}
           <p className="font-[Pretendard] text-sm font-medium leading-normal text-[#828282]">
             {footerText}
             <button
