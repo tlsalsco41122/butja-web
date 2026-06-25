@@ -1,3 +1,5 @@
+import type { ApiDateTime } from '../utils/date'
+
 export type ApiResponse<T> = {
   success: boolean
   data: T | null
@@ -19,7 +21,7 @@ export type Stage = {
   orderNumber: number
   completed: boolean
   status: StageStatus
-  scheduledAt: string | null
+  scheduledAt: ApiDateTime
   memo: string | null
 }
 

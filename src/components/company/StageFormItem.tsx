@@ -1,6 +1,7 @@
 import { X } from 'lucide-react'
 
 export type CompanyStageFormValue = {
+  id?: number
   stageName: string
   memo: string
   scheduleDate: string

@@ -1,18 +1,19 @@
 import grassImage from '../../assets/잔디.png'
 import ChickCharacter from './ChickCharacter'
+import type { DashboardStage } from '../../types/companyProgress'
 
 type StageNodeProps = {
-  name: string
+  stage: DashboardStage
   isCurrent: boolean
   isAcceptedStage: boolean
   isCompanyAccepted: boolean
   buildingImage: string
   cheerMessage: string
-  onSelect: () => void
+  onSelect: (stage: DashboardStage) => void
 }
 
 function StageNode({
-  name,
+  stage,
   isCurrent,
   isAcceptedStage,
   isCompanyAccepted,
@@ -37,7 +38,7 @@ function StageNode({
 
       <button
         type="button"
-        onClick={onSelect}
+        onClick={() => onSelect(stage)}
         className={[
           'relative flex h-10 w-[200px] items-center justify-center rounded-lg border-[5px] border-[#C6F849] bg-cover bg-center px-4 text-center font-[Pretendard] text-[15px] font-bold leading-none text-[#3F4B21] shadow-[0_6px_0_rgba(94,132,21,0.18)] transition duration-300 hover:-translate-y-1 hover:brightness-105 focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-[#67CDFF]',
           isCurrent
@@ -46,7 +47,7 @@ function StageNode({
         ].join(' ')}
         style={{ backgroundImage: `url(${grassImage})` }}
       >
-        {name}
+        {stage.name}
       </button>
     </div>
   )

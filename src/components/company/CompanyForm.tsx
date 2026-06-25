@@ -1,10 +1,18 @@
 import { useState } from 'react'
-import { createApplication } from '../../api/applications'
+import { createApplication, updateApplication } from '../../api/applications'
 import { getApiErrorMessage } from '../../api/client'
-import { createStage } from '../../api/stages'
+import {
+  createStage,
+  deleteStage,
+  updateStage,
+  updateStageOrder,
+} from '../../api/stages'
+import type { JobApplicationDetail } from '../../api/types'
+import { toDateInputValue } from '../../utils/date'
 import StageFormItem, { type CompanyStageFormValue } from './StageFormItem'
 
 type CompanyFormProps = {
+  initialApplication?: JobApplicationDetail
   onCancel: () => void
   onRegistered: () => void
 }
@@ -26,15 +34,39 @@ function toScheduledAt(scheduleDate: string) {
   return scheduleDate ? `${scheduleDate}T00:00:00` : null
 }
 
-function CompanyForm({ onCancel, onRegistered }: CompanyFormProps) {
-  const [companyName, setCompanyName] = useState('')
-  const [jobRole, setJobRole] = useState('')
-  const [memo, setMemo] = useState('')
+function toStageFormValue(
+  application: JobApplicationDetail,
+): CompanyStageFormValue[] {
+  if (application.stages.length === 0) {
+    return [{ ...initialStage }]
+  }
+
+  return application.stages
+    .toSorted((first, second) => first.orderNumber - second.orderNumber)
+    .map((stage) => ({
+      id: stage.id,
+      stageName: stage.name,
+      memo: stage.memo ?? '',
+      scheduleDate: toDateInputValue(stage.scheduledAt),
+    }))
+}
+
+function CompanyForm({
+  initialApplication,
+  onCancel,
+  onRegistered,
+}: CompanyFormProps) {
+  const isEditMode = Boolean(initialApplication)
+  const [companyName, setCompanyName] = useState(
+    initialApplication?.companyName ?? '',
+  )
+  const [jobRole, setJobRole] = useState(initialApplication?.jobRole ?? '')
+  const [memo, setMemo] = useState(initialApplication?.memo ?? '')
   const [isSubmitting, setIsSubmitting] = useState(false)
   const [errorMessage, setErrorMessage] = useState('')
-  const [stages, setStages] = useState<CompanyStageFormValue[]>([
-    { ...initialStage },
-  ])
+  const [stages, setStages] = useState<CompanyStageFormValue[]>(
+    initialApplication ? toStageFormValue(initialApplication) : [{ ...initialStage }],
+  )
 
   const handleStageChange = (
     stageIndex: number,
@@ -64,30 +96,77 @@ function CompanyForm({ onCancel, onRegistered }: CompanyFormProps) {
     setErrorMessage('')
 
     try {
-      const application = await createApplication({
-        companyName,
-        jobRole,
-        appliedDate: getTodayDate(),
-        memo: memo || null,
-      })
-
       const validStages = stages.filter((stage) => stage.stageName.trim())
 
-      await Promise.all(
-        validStages.map((stage, index) =>
-          createStage(application.id, {
-            name: stage.stageName,
-            orderNumber: index,
-            scheduledAt: toScheduledAt(stage.scheduleDate),
-            memo: stage.memo || null,
-          }),
-        ),
-      )
+      if (initialApplication) {
+        await updateApplication(initialApplication.id, {
+          companyName,
+          jobRole,
+          appliedDate: initialApplication.appliedDate,
+          memo: memo || null,
+        })
+
+        const nextExistingStageIds = new Set(
+          validStages
+            .map((stage) => stage.id)
+            .filter((stageId): stageId is number => typeof stageId === 'number'),
+        )
+        const removedStages = initialApplication.stages.filter(
+          (stage) => !nextExistingStageIds.has(stage.id),
+        )
+
+        await Promise.all(
+          removedStages.map((stage) =>
+            deleteStage(initialApplication.id, stage.id),
+          ),
+        )
+
+        for (const [index, stage] of validStages.entries()) {
+          if (stage.id) {
+            await updateStage(initialApplication.id, stage.id, {
+              name: stage.stageName,
+              scheduledAt: toScheduledAt(stage.scheduleDate),
+              memo: stage.memo || null,
+            })
+            await updateStageOrder(initialApplication.id, stage.id, index)
+          } else {
+            await createStage(initialApplication.id, {
+              name: stage.stageName,
+              orderNumber: index,
+              scheduledAt: toScheduledAt(stage.scheduleDate),
+              memo: stage.memo || null,
+            })
+          }
+        }
+      } else {
+        const application = await createApplication({
+          companyName,
+          jobRole,
+          appliedDate: getTodayDate(),
+          memo: memo || null,
+        })
+
+        await Promise.all(
+          validStages.map((stage, index) =>
+            createStage(application.id, {
+              name: stage.stageName,
+              orderNumber: index,
+              scheduledAt: toScheduledAt(stage.scheduleDate),
+              memo: stage.memo || null,
+            }),
+          ),
+        )
+      }
 
       onRegistered()
     } catch (error) {
       setErrorMessage(
-        getApiErrorMessage(error, '기업 등록 중 문제가 발생했어요.'),
+        getApiErrorMessage(
+          error,
+          isEditMode
+            ? '기업 수정 중 문제가 발생했어요.'
+            : '기업 등록 중 문제가 발생했어요.',
+        ),
       )
     } finally {
       setIsSubmitting(false)
@@ -182,7 +261,13 @@ function CompanyForm({ onCancel, onRegistered }: CompanyFormProps) {
           disabled={isSubmitting}
           className="rounded-lg bg-[#67CDFF] px-6 py-2 font-[Pretendard] text-base font-medium text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2CAEE8] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          {isSubmitting ? '등록 중...' : '기업 등록하기'}
+          {isSubmitting
+            ? isEditMode
+              ? '수정 중...'
+              : '등록 중...'
+            : isEditMode
+              ? '수정 저장하기'
+              : '기업 등록하기'}
         </button>
         </div>
       </div>

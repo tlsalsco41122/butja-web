@@ -1,17 +1,24 @@
-import type { CompanyProgress } from '../../data/mockCompanies'
+import type {
+  CompanyProgress,
+  DashboardStage,
+} from '../../types/companyProgress'
 import { getCompanyBuildingImage } from '../../utils/companyBuilding'
 import StageNode from './StageNode'
 
 type CompanyProgressRowProps = {
   company: CompanyProgress
   cheerMessage: string
-  onStageChange: (companyId: string, stageId: string) => void
+  onEdit: (applicationId: number) => void
+  onDelete: (company: CompanyProgress) => void
+  onStageSelect: (stage: DashboardStage) => void
 }
 
 function CompanyProgressRow({
   company,
   cheerMessage,
-  onStageChange,
+  onEdit,
+  onDelete,
+  onStageSelect,
 }: CompanyProgressRowProps) {
   const acceptedStage = company.stages.at(-1)
   const isCompanyAccepted = company.currentStageId === acceptedStage?.id
@@ -25,12 +32,28 @@ function CompanyProgressRow({
             {company.name}
           </h2>
           <p className="font-[Pretendard] text-sm font-medium text-[#69744A]">
-            {isCompanyAccepted ? '최종 합격 완료' : '전형 진행 중'}
+            {company.jobRole} · {isCompanyAccepted ? '최종 합격 완료' : '전형 진행 중'}
           </p>
         </div>
-        <span className="rounded-full bg-white/80 px-3 py-1 font-[Pretendard] text-xs font-semibold text-[#69744A]">
-          {company.stages.length} stages
-        </span>
+        <div className="flex items-center gap-2">
+          <span className="rounded-full bg-white/80 px-3 py-1 font-[Pretendard] text-xs font-semibold text-[#69744A]">
+            {company.stages.length} stages
+          </span>
+          <button
+            type="button"
+            onClick={() => onEdit(company.applicationId)}
+            className="rounded-lg bg-white/80 px-3 py-1.5 font-[Pretendard] text-xs font-semibold text-[#444] transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#67CDFF]"
+          >
+            수정하기
+          </button>
+          <button
+            type="button"
+            onClick={() => onDelete(company)}
+            className="rounded-lg bg-white/80 px-3 py-1.5 font-[Pretendard] text-xs font-semibold text-[#EB5757] transition hover:bg-white focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#EB5757]"
+          >
+            삭제하기
+          </button>
+        </div>
       </div>
 
       <div className="overflow-x-auto scroll-smooth pb-4 pt-[164px] [scrollbar-color:#B9E556_transparent]">
@@ -38,13 +61,13 @@ function CompanyProgressRow({
           {company.stages.map((stage) => (
             <StageNode
               key={stage.id}
-              name={stage.name}
+              stage={stage}
               isCurrent={stage.id === company.currentStageId}
               isAcceptedStage={stage.id === acceptedStage?.id}
               isCompanyAccepted={isCompanyAccepted}
               buildingImage={buildingImage}
               cheerMessage={cheerMessage}
-              onSelect={() => onStageChange(company.id, stage.id)}
+              onSelect={onStageSelect}
             />
           ))}
         </div>
