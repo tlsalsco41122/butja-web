@@ -26,7 +26,11 @@ function StageNode({
   return (
     <div className="relative flex w-[200px] shrink-0 flex-col items-center">
       {isCurrent ? (
-        <ChickCharacter isAccepted={isCompanyAccepted} message={cheerMessage} />
+        <ChickCharacter
+          isAccepted={isCompanyAccepted}
+          isFailed={isFailed} 
+          message={cheerMessage}
+        />
       ) : null}
 
       {isAcceptedStage ? (
