@@ -1,8 +1,12 @@
 import { useState } from 'react'
+import { createApplication } from '../../api/applications'
+import { getApiErrorMessage } from '../../api/client'
+import { createStage } from '../../api/stages'
 import StageFormItem, { type CompanyStageFormValue } from './StageFormItem'
 
 type CompanyFormProps = {
   onCancel: () => void
+  onRegistered: () => void
 }
 
 const initialStage: CompanyStageFormValue = {
@@ -14,10 +18,20 @@ const initialStage: CompanyStageFormValue = {
 const inputClassName =
   'h-10 rounded-lg border border-[#EDEDED] bg-[#F6F6F6] px-5 font-[Pretendard] text-base font-medium text-[#444] outline-none transition placeholder:text-[#828282] focus:border-[#67CDFF] focus:bg-white'
 
-function CompanyForm({ onCancel }: CompanyFormProps) {
+function getTodayDate() {
+  return new Date().toISOString().slice(0, 10)
+}
+
+function toScheduledAt(scheduleDate: string) {
+  return scheduleDate ? `${scheduleDate}T00:00:00` : null
+}
+
+function CompanyForm({ onCancel, onRegistered }: CompanyFormProps) {
   const [companyName, setCompanyName] = useState('')
   const [jobRole, setJobRole] = useState('')
   const [memo, setMemo] = useState('')
+  const [isSubmitting, setIsSubmitting] = useState(false)
+  const [errorMessage, setErrorMessage] = useState('')
   const [stages, setStages] = useState<CompanyStageFormValue[]>([
     { ...initialStage },
   ])
@@ -43,15 +57,41 @@ function CompanyForm({ onCancel }: CompanyFormProps) {
     )
   }
 
-  const handleSubmit = (event: React.FormEvent<HTMLFormElement>) => {
+  const handleSubmit = async (event: React.FormEvent<HTMLFormElement>) => {
     event.preventDefault()
 
-    console.log({
-      companyName,
-      jobRole,
-      memo,
-      stages,
-    })
+    setIsSubmitting(true)
+    setErrorMessage('')
+
+    try {
+      const application = await createApplication({
+        companyName,
+        jobRole,
+        appliedDate: getTodayDate(),
+        memo: memo || null,
+      })
+
+      const validStages = stages.filter((stage) => stage.stageName.trim())
+
+      await Promise.all(
+        validStages.map((stage, index) =>
+          createStage(application.id, {
+            name: stage.stageName,
+            orderNumber: index,
+            scheduledAt: toScheduledAt(stage.scheduleDate),
+            memo: stage.memo || null,
+          }),
+        ),
+      )
+
+      onRegistered()
+    } catch (error) {
+      setErrorMessage(
+        getApiErrorMessage(error, '기업 등록 중 문제가 발생했어요.'),
+      )
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   return (
@@ -68,6 +108,7 @@ function CompanyForm({ onCancel }: CompanyFormProps) {
               value={companyName}
               onChange={(event) => setCompanyName(event.target.value)}
               placeholder="회사명을 입력하세요"
+              required
               className={`${inputClassName} w-[250px]`}
             />
           </label>
@@ -78,6 +119,7 @@ function CompanyForm({ onCancel }: CompanyFormProps) {
               value={jobRole}
               onChange={(event) => setJobRole(event.target.value)}
               placeholder="직무를 입력하세요"
+              required
               className={`${inputClassName} w-[250px]`}
             />
           </label>
@@ -120,20 +162,29 @@ function CompanyForm({ onCancel }: CompanyFormProps) {
         </section>
       </div>
 
-      <div className="mt-6 flex shrink-0 justify-end gap-3">
+      <div className="mt-6 flex shrink-0 flex-col items-end gap-3">
+        {errorMessage ? (
+          <p className="font-[Pretendard] text-sm font-medium text-[#EB5757]">
+            {errorMessage}
+          </p>
+        ) : null}
+        <div className="flex justify-end gap-3">
         <button
           type="button"
           onClick={onCancel}
+          disabled={isSubmitting}
           className="rounded-lg bg-[#C7C7CC] px-6 py-2 font-[Pretendard] text-base font-medium text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#A8A8AD]"
         >
           취소하기
         </button>
         <button
           type="submit"
-          className="rounded-lg bg-[#67CDFF] px-6 py-2 font-[Pretendard] text-base font-medium text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2CAEE8]"
+          disabled={isSubmitting}
+          className="rounded-lg bg-[#67CDFF] px-6 py-2 font-[Pretendard] text-base font-medium text-white transition hover:brightness-95 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[#2CAEE8] disabled:cursor-not-allowed disabled:opacity-60"
         >
-          기업 등록하기
+          {isSubmitting ? '등록 중...' : '기업 등록하기'}
         </button>
+        </div>
       </div>
     </form>
   )
