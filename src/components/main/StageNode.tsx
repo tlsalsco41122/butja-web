@@ -1,4 +1,4 @@
-import grassImage from '../../assets/잔디.png'
+import grassImage from '../../assets/grass.png'
 import ChickCharacter from './ChickCharacter'
 import type { DashboardStage } from '../../types/companyProgress'
 

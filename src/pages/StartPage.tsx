@@ -1,6 +1,6 @@
 import { useNavigate } from 'react-router-dom'
-import backgroundImage from '../assets/배경.png'
-import chickImage from '../assets/기본병아리.png'
+import backgroundImage from '../assets/background.png'
+import chickImage from '../assets/default-chick.png'
 
 function StartPage() {
   const navigate = useNavigate()

@@ -1,5 +1,5 @@
-import defaultChickImage from '../../assets/기본병아리.png'
-import suitedChickImage from '../../assets/정장병아리.png'
+import defaultChickImage from '../../assets/default-chick.png'
+import suitedChickImage from '../../assets/business-chick.png'
 import SpeechBubble from './SpeechBubble'
 
 type ChickCharacterProps = {

@@ -1,6 +1,6 @@
 import { ArrowLeft } from 'lucide-react'
 import { useNavigate } from 'react-router-dom'
-import profileImage from '../../assets/프로필.png'
+import profileImage from '../../assets/profile.png'
 
 type SideMenuProps = {
   isOpen: boolean
