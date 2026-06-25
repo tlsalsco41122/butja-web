@@ -21,7 +21,7 @@ function LoginPage() {
 
       localStorage.setItem('accessToken', response.data.accessToken)
       localStorage.setItem('refreshToken', response.data.refreshToken)
-      navigate('/')
+      navigate('/main')
     } catch (error) {
       setErrorMessage(getAuthErrorMessage(error, '로그인 중 문제가 발생했어요.'))
     } finally {
