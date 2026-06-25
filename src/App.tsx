@@ -1,4 +1,5 @@
 import { Route, Routes } from 'react-router-dom'
+import CompanyRegisterPage from './pages/CompanyRegisterPage'
 import LoginPage from './pages/LoginPage'
 import MainPage from './pages/MainPage'
 import StartPage from './pages/StartPage'
@@ -9,6 +10,7 @@ function App() {
     <Routes>
       <Route path="/" element={<StartPage />} />
       <Route path="/main" element={<MainPage />} />
+      <Route path="/company/register" element={<CompanyRegisterPage />} />
       <Route path="/signup" element={<SignupPage />} />
       <Route path="/login" element={<LoginPage />} />
     </Routes>
