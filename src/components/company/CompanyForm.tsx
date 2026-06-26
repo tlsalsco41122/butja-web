@@ -146,16 +146,14 @@ function CompanyForm({
           memo: memo || null,
         })
 
-        await Promise.all(
-          validStages.map((stage, index) =>
-            createStage(application.id, {
-              name: stage.stageName,
-              orderNumber: index,
-              scheduledAt: toScheduledAt(stage.scheduleDate),
-              memo: stage.memo || null,
-            }),
-          ),
-        )
+        for (const [index, stage] of validStages.entries()) {
+          await createStage(application.id, {
+            name: stage.stageName,
+            orderNumber: index,
+            scheduledAt: toScheduledAt(stage.scheduleDate),
+            memo: stage.memo || null,
+          })
+        }
       }
 
       onRegistered()
